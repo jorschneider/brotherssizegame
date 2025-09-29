@@ -1340,12 +1340,24 @@
 
     const loadouts = {
       balanced: {
+        label: "Balanced Drift",
+        summary: "You braided structure with improvisation to keep every stat in view.",
+        narrative:
+          "The cab stays buoyed between Ogun's plans and Elegba's improvisations, never letting one drown the other.",
         modifiers: { bond: 0, heat: 0, spirit: 0 },
       },
       guardian: {
+        label: "Ogun's Guard",
+        summary: "You led with routine and paperwork so the brothers could move carefully.",
+        narrative:
+          "Ogun's guard still frames the dawn—checklists, quiet vigilance, and the promise to shield Oshoosi a little longer.",
         modifiers: { bond: 8, heat: -6, spirit: -4 },
       },
       dreamer: {
+        label: "Elegba's Dream",
+        summary: "You trusted songs, visions, and chance to open a freer road.",
+        narrative:
+          "Elegba's dreamwork lingers in the cab; coincidences feel like signposts written just for this crew.",
         modifiers: { bond: -5, heat: -3, spirit: 9 },
       },
     };
@@ -1360,9 +1372,13 @@
     const momentHistory = [];
     const interludeHistory = [];
 
+    function getSelectedApproach() {
+      return loadouts[selectedLoadout] || loadouts.balanced;
+    }
+
     function getStartingStats() {
       const start = { ...baseStats };
-      const loadout = loadouts[selectedLoadout] || loadouts.balanced;
+      const loadout = getSelectedApproach();
       Object.entries(loadout.modifiers).forEach(([key, delta]) => {
         if (start[key] !== undefined) {
           start[key] += delta;
@@ -1814,6 +1830,41 @@
       return `Bond ${snapshot.bond} · Heat ${snapshot.heat} · Spirit ${snapshot.spirit}`;
     }
 
+    function calculateStatDelta(finalSnapshot) {
+      return {
+        bond: finalSnapshot.bond - startingSnapshot.bond,
+        heat: finalSnapshot.heat - startingSnapshot.heat,
+        spirit: finalSnapshot.spirit - startingSnapshot.spirit,
+      };
+    }
+
+    function describeStatDelta(delta) {
+      const parts = Object.entries(delta)
+        .filter(([, value]) => value !== 0)
+        .map(([key, value]) => {
+          const label = key.charAt(0).toUpperCase() + key.slice(1);
+          let verb;
+          if (key === "heat") {
+            verb = value > 0 ? "intensifies" : "cools";
+          } else if (key === "bond") {
+            verb = value > 0 ? "tightens" : "loosens";
+          } else {
+            verb = value > 0 ? "surges" : "ebbs";
+          }
+          return `${label} ${verb} by ${Math.abs(value)}`;
+        });
+
+      if (parts.length === 0) {
+        return "";
+      }
+
+      if (parts.length === 1) {
+        return parts[0];
+      }
+
+      return `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
+    }
+
     function buildFinalNarrative(finalSnapshot) {
       const segments = [];
       const finalChoice = journeyHistory[journeyHistory.length - 1];
@@ -1854,6 +1905,18 @@
           break;
       }
       segments.push(statSentence);
+
+      const deltaDescription = describeStatDelta(calculateStatDelta(finalSnapshot));
+      if (deltaDescription) {
+        segments.push(`Since the wake-up call, ${deltaDescription}.`);
+      } else {
+        segments.push("They end close to where they began, breath held together for what comes next.");
+      }
+
+      const approach = getSelectedApproach();
+      if (approach && approach.narrative) {
+        segments.push(approach.narrative);
+      }
 
       const moment = momentHistory[momentHistory.length - 1];
       const interlude = interludeHistory[interludeHistory.length - 1];
@@ -1917,15 +1980,35 @@
       finaleHeading.textContent = finale.label;
       finaleLede.textContent = finale.narrative || finale.summary;
 
+      const approach = getSelectedApproach();
+      const approachSummary = [];
+      if (approach && approach.label) {
+        approachSummary.push(`<strong>Guiding principle:</strong> ${escapeHTML(approach.label)}`);
+        if (approach.summary) {
+          approachSummary.push(`— ${escapeHTML(approach.summary)}`);
+        }
+      }
+
       const statsSegments = [
         `<p><strong>${escapeHTML(finale.label)}:</strong> ${escapeHTML(finale.summary)}</p>`,
         `<p><strong>Opening pulse:</strong> ${escapeHTML(formatStatsSummary(startingSnapshot))}</p>`,
         `<p><strong>Closing state:</strong> ${escapeHTML(formatStatsSummary(finalSnapshot))}</p>`,
       ];
 
+      if (approachSummary.length) {
+        statsSegments.splice(1, 0, `<p>${approachSummary.join(" ")}</p>`);
+      }
+
       if (immediateOutcome) {
         statsSegments.push(
           `<p><strong>Last move:</strong> ${escapeHTML(immediateOutcome)}</p>`
+        );
+      }
+
+      const deltaEffect = formatEffect(calculateStatDelta(finalSnapshot));
+      if (deltaEffect) {
+        statsSegments.push(
+          `<p><strong>Night shift:</strong> ${escapeHTML(deltaEffect)}</p>`
         );
       }
 
