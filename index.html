@@ -781,6 +781,8 @@
       background: radial-gradient(circle at top, rgba(12, 42, 40, 0.9), rgba(3, 8, 18, 0.94));
       backdrop-filter: blur(18px);
       z-index: 20;
+      overflow-y: auto;
+      align-content: center;
     }
 
     .overlay[hidden] {
@@ -788,7 +790,8 @@
     }
 
     .overlay-card {
-      max-width: 640px;
+      width: clamp(320px, 75vw, 720px);
+      max-height: min(92vh, 860px);
       background: linear-gradient(160deg, rgba(7, 31, 32, 0.92), rgba(9, 23, 44, 0.94));
       border-radius: 26px;
       border: 1px solid rgba(241, 179, 75, 0.28);
@@ -797,6 +800,7 @@
       position: relative;
       overflow: hidden;
       box-shadow: 0 40px 120px rgba(2, 6, 18, 0.65);
+      overflow-y: auto;
     }
 
     .overlay-card::before {
@@ -809,7 +813,7 @@
     }
 
     .finale-card {
-      max-width: 720px;
+      width: clamp(320px, 80vw, 900px);
     }
 
     .finale-card h3 {
@@ -1136,9 +1140,7 @@
       <ol class="progress-list" id="progress">
         <li class="progress-step" data-scene="wake"><strong>Wake</strong><small>Morning at the shop</small></li>
         <li class="progress-step" data-scene="gift"><strong>Gift</strong><small>Elegba's Monte Carlo</small></li>
-        <li class="progress-step" data-scene="outlet"><strong>Outlet</strong><small>Neon release</small></li>
-        <li class="progress-step" data-scene="drive"><strong>Drive</strong><small>Bayou run</small></li>
-        <li class="progress-step" data-scene="pursuit"><strong>Chase</strong><small>Blue light trap</small></li>
+        <li class="progress-step" data-scene="gauntlet"><strong>Gauntlet</strong><small>Blue lights gather</small></li>
         <li class="progress-step" data-scene="campfire"><strong>Fire</strong><small>Midnight confession</small></li>
         <li class="progress-step" data-scene="dawn"><strong>Dawn</strong><small>Final choice</small></li>
       </ol>
@@ -1338,12 +1340,24 @@
 
     const loadouts = {
       balanced: {
+        label: "Balanced Drift",
+        summary: "You braided structure with improvisation to keep every stat in view.",
+        narrative:
+          "The cab stays buoyed between Ogun's plans and Elegba's improvisations, never letting one drown the other.",
         modifiers: { bond: 0, heat: 0, spirit: 0 },
       },
       guardian: {
+        label: "Ogun's Guard",
+        summary: "You led with routine and paperwork so the brothers could move carefully.",
+        narrative:
+          "Ogun's guard still frames the dawn—checklists, quiet vigilance, and the promise to shield Oshoosi a little longer.",
         modifiers: { bond: 8, heat: -6, spirit: -4 },
       },
       dreamer: {
+        label: "Elegba's Dream",
+        summary: "You trusted songs, visions, and chance to open a freer road.",
+        narrative:
+          "Elegba's dreamwork lingers in the cab; coincidences feel like signposts written just for this crew.",
         modifiers: { bond: -5, heat: -3, spirit: 9 },
       },
     };
@@ -1358,9 +1372,13 @@
     const momentHistory = [];
     const interludeHistory = [];
 
+    function getSelectedApproach() {
+      return loadouts[selectedLoadout] || loadouts.balanced;
+    }
+
     function getStartingStats() {
       const start = { ...baseStats };
-      const loadout = loadouts[selectedLoadout] || loadouts.balanced;
+      const loadout = getSelectedApproach();
       Object.entries(loadout.modifiers).forEach(([key, delta]) => {
         if (start[key] !== undefined) {
           start[key] += delta;
@@ -1422,75 +1440,17 @@
         ],
       },
       {
-        id: "outlet",
-        title: "Outlet Escape",
+        id: "gauntlet",
+        title: "Bayou Gauntlet",
         description:
-          "Neon spill from the outlet mall mirrors the gulf sky. Elegba swears a little celebration will steady Oshoosi's nerves.",
+          "Blue lights flicker in the rearview as rain slicks the interstate. Every mile toward the border feels like borrowed time.",
         options: [
           {
-            text: "Let Oshoosi dance the jitters out while Ogun scopes exits and security cams.",
-            impact: { bond: +5, heat: +6, spirit: +4 },
-            log: "You make space for joy in stolen minutes; tension eases even as attention drifts.",
-            outcome:
-              "Oshoosi's laughter fills the parking lot. Ogun maps escape routes between steps, promising a quick sprint if blue lights flare.",
-          },
-          {
-            text: "Split up: Elegba distracts shoppers with jokes while the brothers stock up on supplies.",
-            impact: { bond: +3, heat: -5, spirit: +2 },
-            log: "Teamwork turns the outlet into a quiet rehearsal for the border run.",
-            outcome:
-              "Elegba juggles keychains, drawing a crowd. Ogun and Oshoosi snag maps, snacks, and a new burner phone before reconvening at the truck.",
-          },
-          {
-            text: "Skip the outing and rehearse cover stories in the parking lot shadows.",
-            impact: { bond: -4, heat: -8, spirit: -2 },
-            log: "You trade release for readiness; the night tightens around your shoulders.",
-            outcome:
-              "Voices drop to whispers as you run scenarios. Elegba leans against the trunk, restless, promising the fun will have to wait for freedom.",
-          },
-        ],
-      },
-      {
-        id: "drive",
-        title: "Bayou Run",
-        description:
-          "Storm clouds gather over the bayou road. The trio slips onto the interstate toward the border, dashboards glowing.",
-        options: [
-          {
-            text: "Split duties: Ogun watches the scanner, Oshoosi drives, Elegba sings to keep rhythm.",
+            text: "Split duties: Ogun watches the scanner, Oshoosi keeps the wheel steady, Elegba hums a steady hymn.",
             impact: { bond: +8, heat: -5, spirit: +6 },
             log: "You harmonize over the rumble strips; Elegba's melody shields the truck.",
             outcome:
               "The song steadies every breath. A roadblock flashes ahead, but the trio glides off onto a service road before the troopers blink.",
-          },
-          {
-            text: "Gun the engine past the swamp stretch before the storm hits.",
-            impact: { bond: +2, heat: +14, spirit: +1 },
-            log: "You push your luck; wind and sirens nipping your heels.",
-            outcome:
-              "The truck howls across the bridge. You beat the downpour, but a helicopter sweeps the bayou with a spotlight not far behind.",
-          },
-          {
-            text: "Pull over under the overpass and let the dreamscape wash over you.",
-            impact: { bond: +4, heat: -8, spirit: +10 },
-            log: "You trade motion for meditation; the air shimmers with ancestors.",
-            outcome:
-              "In the stillness, Elegba whispers a path through the marsh that only shows itself when eyes are closed.",
-          },
-        ],
-      },
-      {
-        id: "pursuit",
-        title: "Blue Light Pursuit",
-        description:
-          "A patrol car lingers in the rearview, siren off but eager. The planted coke is somewhere behind you—maybe.",
-        options: [
-          {
-            text: "Have Elegba spin a tale about a blown tire while Ogun readies the paperwork.",
-            impact: { bond: +4, heat: -7, spirit: +1 },
-            log: "You weaponize charm and documentation to cool the chase.",
-            outcome:
-              "Elegba jumps out waving a jack, spinning a story so vivid the trooper checks the trunk, shrugs, and rolls on.",
           },
           {
             text: "Peel off down a service road and hide under a stilt house until dawn.",
@@ -1870,6 +1830,125 @@
       return `Bond ${snapshot.bond} · Heat ${snapshot.heat} · Spirit ${snapshot.spirit}`;
     }
 
+    function calculateStatDelta(finalSnapshot) {
+      return {
+        bond: finalSnapshot.bond - startingSnapshot.bond,
+        heat: finalSnapshot.heat - startingSnapshot.heat,
+        spirit: finalSnapshot.spirit - startingSnapshot.spirit,
+      };
+    }
+
+    function describeStatDelta(delta) {
+      const parts = Object.entries(delta)
+        .filter(([, value]) => value !== 0)
+        .map(([key, value]) => {
+          const label = key.charAt(0).toUpperCase() + key.slice(1);
+          let verb;
+          if (key === "heat") {
+            verb = value > 0 ? "intensifies" : "cools";
+          } else if (key === "bond") {
+            verb = value > 0 ? "tightens" : "loosens";
+          } else {
+            verb = value > 0 ? "surges" : "ebbs";
+          }
+          return `${label} ${verb} by ${Math.abs(value)}`;
+        });
+
+      if (parts.length === 0) {
+        return "";
+      }
+
+      if (parts.length === 1) {
+        return parts[0];
+      }
+
+      return `${parts.slice(0, -1).join(", ")}, and ${parts[parts.length - 1]}`;
+    }
+
+    function buildFinalNarrative(finalSnapshot) {
+      const segments = [];
+      const finalChoice = journeyHistory[journeyHistory.length - 1];
+
+      if (finalChoice && finalChoice.outcome) {
+        segments.push(finalChoice.outcome);
+      } else {
+        segments.push("Dawn arrives on a quiet truck bed, choices still humming in the cab.");
+      }
+
+      const highest = Object.entries(finalSnapshot).reduce(
+        (acc, [key, value]) => {
+          if (value > acc.value) {
+            return { key, value };
+          }
+          return acc;
+        },
+        { key: "bond", value: -Infinity }
+      );
+
+      let statSentence;
+      switch (highest.key) {
+        case "bond":
+          statSentence =
+            "Bond stays the loudest drum, every glance a promise to stand together against whatever comes next.";
+          break;
+        case "heat":
+          statSentence =
+            "Heat still crackles at their backs, but they square their shoulders together and refuse to flinch.";
+          break;
+        case "spirit":
+          statSentence =
+            "Spirit hums through the cab, dream logic guiding their hands as if the night itself were on their side.";
+          break;
+        default:
+          statSentence =
+            "They breathe in time, measuring each mile by the way their pulse steadies.";
+          break;
+      }
+      segments.push(statSentence);
+
+      const deltaDescription = describeStatDelta(calculateStatDelta(finalSnapshot));
+      if (deltaDescription) {
+        segments.push(`Since the wake-up call, ${deltaDescription}.`);
+      } else {
+        segments.push("They end close to where they began, breath held together for what comes next.");
+      }
+
+      const approach = getSelectedApproach();
+      if (approach && approach.narrative) {
+        segments.push(approach.narrative);
+      }
+
+      const moment = momentHistory[momentHistory.length - 1];
+      const interlude = interludeHistory[interludeHistory.length - 1];
+
+      if (moment) {
+        const effectText = formatEffect(moment.impact);
+        segments.push(
+          effectText
+            ? `The echo of ${moment.title} rides with them, leaving them with ${effectText}.`
+            : `The echo of ${moment.title} rides with them, smoothing the road ahead.`
+        );
+      } else if (interlude) {
+        const effectText = formatEffect(interlude.effect);
+        segments.push(
+          effectText
+            ? `${interlude.title} still warms their chests, a quiet compass worth ${effectText}.`
+            : `${interlude.title} still warms their chests, a quiet compass for the miles ahead.`
+        );
+      } else if (journeyHistory.length > 1) {
+        const first = journeyHistory[0];
+        segments.push(
+          `The night has carried them far from ${first.title}, yet the promise forged there keeps the truck aimed forward.`
+        );
+      } else {
+        segments.push(
+          "They let the quiet between words answer whatever the dawn might demand."
+        );
+      }
+
+      return segments.join(" ");
+    }
+
     function renderSummaryList(collection, element, renderItem, emptyMessage) {
       if (!element) return;
       element.innerHTML = "";
@@ -1891,23 +1970,45 @@
     function renderFinaleSummary(finale, immediateOutcome) {
       if (!finaleOverlay) return;
 
-      const finalSnapshot = {
-        bond: clampStat(stats.bond),
-        heat: clampStat(stats.heat),
-        spirit: clampStat(stats.spirit),
-      };
+      const finalSnapshot =
+        finale.snapshot ?? {
+          bond: clampStat(stats.bond),
+          heat: clampStat(stats.heat),
+          spirit: clampStat(stats.spirit),
+        };
 
       finaleHeading.textContent = finale.label;
-      finaleLede.textContent = finale.summary;
+      finaleLede.textContent = finale.narrative || finale.summary;
+
+      const approach = getSelectedApproach();
+      const approachSummary = [];
+      if (approach && approach.label) {
+        approachSummary.push(`<strong>Guiding principle:</strong> ${escapeHTML(approach.label)}`);
+        if (approach.summary) {
+          approachSummary.push(`— ${escapeHTML(approach.summary)}`);
+        }
+      }
 
       const statsSegments = [
+        `<p><strong>${escapeHTML(finale.label)}:</strong> ${escapeHTML(finale.summary)}</p>`,
         `<p><strong>Opening pulse:</strong> ${escapeHTML(formatStatsSummary(startingSnapshot))}</p>`,
         `<p><strong>Closing state:</strong> ${escapeHTML(formatStatsSummary(finalSnapshot))}</p>`,
       ];
 
+      if (approachSummary.length) {
+        statsSegments.splice(1, 0, `<p>${approachSummary.join(" ")}</p>`);
+      }
+
       if (immediateOutcome) {
         statsSegments.push(
           `<p><strong>Last move:</strong> ${escapeHTML(immediateOutcome)}</p>`
+        );
+      }
+
+      const deltaEffect = formatEffect(calculateStatDelta(finalSnapshot));
+      if (deltaEffect) {
+        statsSegments.push(
+          `<p><strong>Night shift:</strong> ${escapeHTML(deltaEffect)}</p>`
         );
       }
 
@@ -2126,9 +2227,14 @@
     function showFinale() {
       const finale = determineFinale();
       const immediate = outcomeEl.textContent;
-      outcomeEl.innerHTML = `<p>${escapeHTML(immediate)}</p><p><strong>${escapeHTML(
-        finale.label
-      )}:</strong> ${escapeHTML(finale.summary)}</p>`;
+      const finaleSegments = [
+        `<p>${escapeHTML(immediate)}</p>`,
+        `<p><strong>${escapeHTML(finale.label)}:</strong> ${escapeHTML(finale.summary)}</p>`,
+      ];
+      if (finale.narrative) {
+        finaleSegments.push(`<p>${escapeHTML(finale.narrative)}</p>`);
+      }
+      outcomeEl.innerHTML = finaleSegments.join("");
       logEvent(`<strong>Finale:</strong> ${escapeHTML(finale.label)}`);
       renderFinaleSummary(finale, immediate);
       updateProgress();
@@ -2146,46 +2252,50 @@
     }
 
     function determineFinale() {
-      const bond = clampStat(stats.bond);
-      const heat = clampStat(stats.heat);
-      const spirit = clampStat(stats.spirit);
+      const finalSnapshot = {
+        bond: clampStat(stats.bond),
+        heat: clampStat(stats.heat),
+        spirit: clampStat(stats.spirit),
+      };
 
-      if (bond >= 75 && heat <= 40 && spirit >= 60) {
-        return {
+      let finale;
+
+      if (finalSnapshot.bond >= 75 && finalSnapshot.heat <= 40 && finalSnapshot.spirit >= 60) {
+        finale = {
           label: "Open Road",
           summary:
             "✨ The bond holds, the law looks elsewhere, and the song carries you across the border with room to breathe.",
         };
-      }
-
-      if (heat >= 75) {
-        return {
+      } else if (finalSnapshot.heat >= 75) {
+        finale = {
           label: "Blue Lights",
           summary:
             "🚨 Sirens crest the hill. Even together, you're forced to kneel—but the story of the planted bag is loud enough to draw witnesses.",
         };
-      }
-
-      if (spirit <= 35) {
-        return {
+      } else if (finalSnapshot.spirit <= 35) {
+        finale = {
           label: "Hollow Echo",
           summary:
             "🌒 Exhaustion hollows everyone out. Ogun's hands shake as Oshoosi drives alone into the gray, Elegba fading into mist.",
         };
-      }
-
-      if (bond <= 35) {
-        return {
+      } else if (finalSnapshot.bond <= 35) {
+        finale = {
           label: "Frayed Tether",
           summary:
             "🪢 The bond slips. Each brother chooses a different road, haunted by the what-ifs of that night by the fire.",
         };
+      } else {
+        finale = {
+          label: "Uncertain Horizon",
+          summary:
+            "🌤️ Dawn arrives with questions. You're still together, but every mile ahead is a delicate negotiation with fate.",
+        };
       }
 
       return {
-        label: "Uncertain Horizon",
-        summary:
-          "🌤️ Dawn arrives with questions. You're still together, but every mile ahead is a delicate negotiation with fate.",
+        ...finale,
+        narrative: buildFinalNarrative(finalSnapshot),
+        snapshot: finalSnapshot,
       };
     }
 
